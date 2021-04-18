@@ -10,6 +10,21 @@ using std::string;
 using std::to_string;
 using std::vector;
 
+// This function reads files line by line and pushes every item in the line 
+// to a vector. This vector is then pushed onto another vector.
+void LinuxParser::SplitL(std::ifstream & filestream, vector<vector<string>> & returnvec, char separator) {
+  string line;
+  vector<string> internalvec;
+  while (std::getline(filestream, line)) {
+    std::stringstream linestream(line);
+    while(std::getline(linestream, line, separator)) {
+        internalvec.push_back(line);
+    }
+    returnvec.push_back(internalvec);
+    internalvec = {};
+  }
+} 
+
 // DONE: An example of how to read data from the filesystem
 string LinuxParser::OperatingSystem() {
   string line;
@@ -33,17 +48,16 @@ string LinuxParser::OperatingSystem() {
   return value;
 }
 
-// DONE: An example of how to read data from the filesystem
+// DONE: Modified from original Udacity example
 string LinuxParser::Kernel() {
-  string os, version, kernel;
-  string line;
-  std::ifstream stream(kProcDirectory + kVersionFilename);
-  if (stream.is_open()) {
-    std::getline(stream, line);
-    std::istringstream linestream(line);
-    linestream >> os >> version >> kernel;
+  vector<vector<string>> filecontent;
+  std::ifstream fstream(kProcDirectory + kVersionFilename);
+  if (fstream.is_open()) {
+    LinuxParser::SplitL(fstream, filecontent, ' ');
   }
-  return kernel;
+  // in the kernel version file the kernel name is in the first 
+  // line and third position [0][2]
+  return filecontent[0][2];
 }
 
 // BONUS: Update this to use std::filesystem

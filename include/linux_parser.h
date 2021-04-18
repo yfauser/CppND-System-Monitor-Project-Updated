@@ -18,6 +18,9 @@ const std::string kVersionFilename{"/version"};
 const std::string kOSPath{"/etc/os-release"};
 const std::string kPasswordPath{"/etc/passwd"};
 
+//Helpers
+void SplitL(std::ifstream & filestream, std::vector<std::vector<std::string>> & returnvec, char separator);
+
 // System
 float MemoryUtilization();
 long UpTime();
