@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <string>
 #include <vector>
+#include <map>
 
 #include "linux_parser.h"
 
@@ -9,12 +10,12 @@ using std::stof;
 using std::string;
 using std::to_string;
 using std::vector;
+using std::map;
 
 // This function reads files line by line and pushes every item in the line 
 // to a vector. This vector is then pushed onto another vector.
 vector<vector<string>> LinuxParser::GetSpacedContent(string const filepath, char const separator) {
-  string line;
-  string item;
+  string line, item;
   vector<string> innervec;
   vector<vector<string>> externalvec;
   std::ifstream filestream(filepath);
@@ -29,29 +30,35 @@ vector<vector<string>> LinuxParser::GetSpacedContent(string const filepath, char
     }
   }
   return externalvec;
-} 
+}
 
-// DONE: An example of how to read data from the filesystem
-string LinuxParser::OperatingSystem() {
-  string line;
-  string key;
-  string value;
-  std::ifstream filestream(kOSPath);
+// This function reads files line by line and extracts Key/Values from the lines
+// it can also remove unwanted characters from the line
+map<string, string> LinuxParser::GetKVContent(string const filepath, char const separator, vector<char> const removechars) {
+  string line, key, value;
+  map<string, string> dict;
+  std::ifstream filestream(filepath);
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
-      std::replace(line.begin(), line.end(), ' ', '_');
-      std::replace(line.begin(), line.end(), '=', ' ');
-      std::replace(line.begin(), line.end(), '"', ' ');
-      std::istringstream linestream(line);
-      while (linestream >> key >> value) {
-        if (key == "PRETTY_NAME") {
-          std::replace(value.begin(), value.end(), '_', ' ');
-          return value;
-        }
+      std::stringstream linestream(line);
+      std::getline(linestream, key, separator);
+      std::getline(linestream, value, separator);
+      for (char toremove: removechars) {
+        key.erase(remove(key.begin(), key.end(), toremove), key.end());
+        value.erase(remove(value.begin(), value.end(), toremove), value.end());
       }
+      dict.insert({key, value});
     }
   }
-  return value;
+  return dict;
+}
+
+// DONE: Refactored OperatorSystem function using external function for modularity
+//       Modified from original Udacity example
+string LinuxParser::OperatingSystem() {
+  vector<char> removechars{'"'};
+  map<string, string> osinfo = GetKVContent(kOSPath, '=', removechars);
+  return osinfo["PRETTY_NAME"];
 }
 
 // DONE: Modified from original Udacity example

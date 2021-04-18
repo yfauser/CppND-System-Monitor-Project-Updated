@@ -21,7 +21,7 @@ const std::string kPasswordPath{"/etc/passwd"};
 
 //Helpers
 std::vector<std::vector<std::string>> GetSpacedContent(std::string const filepath, char const separator);
-std::map<std::string, std::string> GetKVContent(std::string const filepath, char const separator);
+std::map<std::string, std::string> GetKVContent(std::string const filepath, char const separator, std::vector<char> const removechars);
 
 // System
 float MemoryUtilization();
