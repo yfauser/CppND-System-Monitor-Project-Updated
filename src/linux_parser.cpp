@@ -12,17 +12,23 @@ using std::vector;
 
 // This function reads files line by line and pushes every item in the line 
 // to a vector. This vector is then pushed onto another vector.
-void LinuxParser::SplitL(std::ifstream & filestream, vector<vector<string>> & returnvec, char separator) {
+vector<vector<string>> LinuxParser::GetSpacedContent(string const filepath, char const separator) {
   string line;
-  vector<string> internalvec;
-  while (std::getline(filestream, line)) {
-    std::stringstream linestream(line);
-    while(std::getline(linestream, line, separator)) {
-        internalvec.push_back(line);
+  string item;
+  vector<string> innervec;
+  vector<vector<string>> externalvec;
+  std::ifstream filestream(filepath);
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      std::stringstream linestream(line);
+      while(std::getline(linestream, item, separator)) {
+          innervec.push_back(item);
+      }
+      externalvec.push_back(innervec);
+      innervec = {};
     }
-    returnvec.push_back(internalvec);
-    internalvec = {};
   }
+  return externalvec;
 } 
 
 // DONE: An example of how to read data from the filesystem
@@ -50,11 +56,8 @@ string LinuxParser::OperatingSystem() {
 
 // DONE: Modified from original Udacity example
 string LinuxParser::Kernel() {
-  vector<vector<string>> filecontent;
-  std::ifstream fstream(kProcDirectory + kVersionFilename);
-  if (fstream.is_open()) {
-    LinuxParser::SplitL(fstream, filecontent, ' ');
-  }
+  string filepath = kProcDirectory + kVersionFilename;
+  vector<vector<string>> filecontent = GetSpacedContent(filepath, ' ');
   // in the kernel version file the kernel name is in the first 
   // line and third position [0][2]
   return filecontent[0][2];

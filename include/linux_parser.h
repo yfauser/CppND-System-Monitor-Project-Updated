@@ -4,6 +4,7 @@
 #include <fstream>
 #include <regex>
 #include <string>
+#include <map>
 
 namespace LinuxParser {
 // Paths
@@ -19,7 +20,8 @@ const std::string kOSPath{"/etc/os-release"};
 const std::string kPasswordPath{"/etc/passwd"};
 
 //Helpers
-void SplitL(std::ifstream & filestream, std::vector<std::vector<std::string>> & returnvec, char separator);
+std::vector<std::vector<std::string>> GetSpacedContent(std::string const filepath, char const separator);
+std::map<std::string, std::string> GetKVContent(std::string const filepath, char const separator);
 
 // System
 float MemoryUtilization();
