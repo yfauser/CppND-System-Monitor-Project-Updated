@@ -2,9 +2,9 @@
 #define SYSTEM_PARSER_H
 
 #include <fstream>
+#include <map>
 #include <regex>
 #include <string>
-#include <map>
 
 namespace LinuxParser {
 // Paths
@@ -19,9 +19,12 @@ const std::string kVersionFilename{"/version"};
 const std::string kOSPath{"/etc/os-release"};
 const std::string kPasswordPath{"/etc/passwd"};
 
-//Helpers
-std::vector<std::vector<std::string>> GetSpacedContent(std::string const filepath, char const separator);
-std::map<std::string, std::string> GetKVContent(std::string const filepath, char const separator, std::vector<char> const removechars);
+// Helpers
+std::vector<std::vector<std::string>> GetSpacedContent(
+    std::string const filepath, char const separator);
+std::map<std::string, std::string> GetKVContent(
+    std::string const filepath, char const separator,
+    std::vector<char> const removechars);
 
 // System
 float MemoryUtilization();
