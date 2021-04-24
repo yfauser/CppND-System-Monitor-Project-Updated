@@ -97,10 +97,16 @@ vector<int> LinuxParser::Pids() {
   return pids;
 }
 
-// TODO: Read and return the system memory utilization
-float LinuxParser::MemoryUtilization() { return 0.0; }
+// DONE: Read and return the system memory utilization
+float LinuxParser::MemoryUtilization() {
+  vector<char> removechars{' ', 'k', 'B'};
+  string filepath = kProcDirectory + kMeminfoFilename;
+  map<string, string> meminfo = GetKVContent(filepath, ':', removechars);
+  float memuse_kb = stof(meminfo["MemTotal"]) - stof(meminfo["MemAvailable"]);
+  return memuse_kb / stof(meminfo["MemTotal"]);
+}
 
-// TODO: Read and return the system uptime
+// DONE: Read and return the system uptime
 long LinuxParser::UpTime() {
   string filepath = kProcDirectory + kUptimeFilename;
   vector<vector<string>> filecontent = GetSpacedContent(filepath, ' ');
