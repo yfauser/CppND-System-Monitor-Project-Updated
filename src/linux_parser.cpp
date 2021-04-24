@@ -101,13 +101,13 @@ vector<int> LinuxParser::Pids() {
 float LinuxParser::MemoryUtilization() { return 0.0; }
 
 // TODO: Read and return the system uptime
-long LinuxParser::UpTime() {   
+long LinuxParser::UpTime() {
   string filepath = kProcDirectory + kUptimeFilename;
   vector<vector<string>> filecontent = GetSpacedContent(filepath, ' ');
   // in the proc/uptime file the uptime in seconds is in the first
   // line and first position [0][0]
-  return stol(filecontent[0][0]); 
-  }
+  return stol(filecontent[0][0]);
+}
 
 // TODO: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() { return 0; }
@@ -126,21 +126,22 @@ long LinuxParser::IdleJiffies() { return 0; }
 vector<string> LinuxParser::CpuUtilization() { return {}; }
 
 // TODO: Read and return the total number of processes
-int LinuxParser::TotalProcesses() { 
+int LinuxParser::TotalProcesses() {
   string filepath = kProcDirectory + kStatFilename;
   vector<vector<string>> filecontent = GetSpacedContent(filepath, ' ');
   // in the proc/stats file the processes count is in the seventh
   // line and second position [6][1]
-  return stoi(filecontent[6][1]); 
-  }
+  return stoi(filecontent[6][1]);
+}
 
 // TODO: Read and return the number of running processes
-int LinuxParser::RunningProcesses() {   
+int LinuxParser::RunningProcesses() {
   string filepath = kProcDirectory + kStatFilename;
   vector<vector<string>> filecontent = GetSpacedContent(filepath, ' ');
   // in the proc/stats file the running processes count is in the seventh
   // line and second position [7][1]
-  return stoi(filecontent[7][1]); }
+  return stoi(filecontent[7][1]);
+}
 
 // TODO: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
