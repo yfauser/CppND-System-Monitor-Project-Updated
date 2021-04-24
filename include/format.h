@@ -5,6 +5,7 @@
 
 namespace Format {
 std::string ElapsedTime(long times);  // TODO: See src/format.cpp
+std::string TwoDigits(std::string const &timestr);
 };                                    // namespace Format
 
 #endif
