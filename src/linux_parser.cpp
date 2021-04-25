@@ -165,21 +165,52 @@ int LinuxParser::RunningProcesses() {
   return stoi(filecontent[7][1]);
 }
 
-// TODO: Read and return the command associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Command(int pid [[maybe_unused]]) { return string(); }
+// DONE: Read and return the command associated with a process
+string LinuxParser::Command(int pid) {
+  string filepath = kProcDirectory + to_string(pid) + kCmdlineFilename;
+  // To get the full line with the function, I'm using an unused DC1
+  // Char as the separator, therefore the full line will be in [0][0]
+  vector<vector<string>> filecontent = GetSpacedContent(filepath, '\11');
+  if (filecontent.size() == 0)
+    return string();
+  else
+    return filecontent[0][0];
+}
 
 // TODO: Read and return the memory used by a process
 // REMOVE: [[maybe_unused]] once you define the function
 string LinuxParser::Ram(int pid [[maybe_unused]]) { return string(); }
 
-// TODO: Read and return the user ID associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Uid(int pid [[maybe_unused]]) { return string(); }
+// DONE: Read and return the user ID associated with a process
+string LinuxParser::Uid(int pid) {
+  vector<string> linevect;
+  vector<char> removechars{' '};
+  string filepath = kProcDirectory + to_string(pid) + kStatusFilename;
+  map<string, string> procstatus = GetKVContent(filepath, ':', removechars);
+  // Getting the Uid line as stringstream
+  std::stringstream uidstream(procstatus["Uid"]);
+  string item;
+  while (std::getline(uidstream, item, '\t')) {
+    linevect.push_back(item);
+  }
+  // The Uid is the second element of the created vector
+  return linevect[1];
+}
 
-// TODO: Read and return the user associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::User(int pid [[maybe_unused]]) { return string(); }
+// DONE: Read and return the user associated with a process
+string LinuxParser::User(int pid) {
+  string uid_str = Uid(pid);
+  // The lines in the /etc/passwd file are ':' separated
+  vector<vector<string>> filecontent = GetSpacedContent(kPasswordPath, ':');
+  // iterating through the lines in the file to find the userid (3rd pos)
+  // and returning the username (1st pos)
+  for (vector<string> line : filecontent) {
+    if (line[2] == uid_str) {
+      return line[0];
+    }
+  }
+  return string();
+}
 
 // TODO: Read and return the uptime of a process
 // REMOVE: [[maybe_unused]] once you define the function

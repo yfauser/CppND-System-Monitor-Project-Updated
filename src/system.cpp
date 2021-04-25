@@ -19,16 +19,23 @@ using std::vector;
 System::System()
     : kernel_(LinuxParser::Kernel()), osname_(LinuxParser::OperatingSystem()) {}
 
-// TODO: Return the system's CPU
+// DONE: Return the system's CPU
 Processor& System::Cpu() { return cpu_; }
 
 // TODO: Return a container composed of the system's processes
-vector<Process>& System::Processes() { return processes_; }
+vector<Process>& System::Processes() {
+  vector<int> pids = LinuxParser::Pids();
+  for (int pid : pids) {
+    Process new_proc(pid);
+    processes_.push_back(new_proc);
+  }
+  return processes_;
+}
 
 // DONE: Return the system's kernel identifier (string)
 std::string System::Kernel() { return kernel_; }
 
-// TODO: Return the system's memory utilization
+// DONE: Return the system's memory utilization
 float System::MemoryUtilization() { return LinuxParser::MemoryUtilization(); }
 
 // DONE: Return the operating system name
