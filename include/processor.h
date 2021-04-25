@@ -1,12 +1,18 @@
 #ifndef PROCESSOR_H
 #define PROCESSOR_H
 
+#include <map>
+#include <queue>
+#include <string>
+
 class Processor {
  public:
-  float Utilization();  // TODO: See src/processor.cpp
+  float Utilization();  // DONE: See src/processor.cpp
 
-  // TODO: Declare any necessary private members
+  // DONE: Declare any necessary private members
  private:
+  std::queue<std::map<std::string, long>> prev_stats_;
+  const long unsigned int timedistance_{3};
 };
 
 #endif

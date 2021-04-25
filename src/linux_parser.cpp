@@ -129,7 +129,23 @@ long LinuxParser::ActiveJiffies() { return 0; }
 long LinuxParser::IdleJiffies() { return 0; }
 
 // TODO: Read and return CPU utilization
-vector<string> LinuxParser::CpuUtilization() { return {}; }
+map<string, long> LinuxParser::CpuUtilization() {
+  map<string, long> cpustats;
+  string filepath = kProcDirectory + kStatFilename;
+  vector<vector<string>> filecontent = GetSpacedContent(filepath, ' ');
+  long user = stol(filecontent[0][2]);
+  long nice = stol(filecontent[0][3]);
+  long system = stol(filecontent[0][4]);
+  long idle = stol(filecontent[0][5]);
+  long iowait = stol(filecontent[0][6]);
+  long irq = stol(filecontent[0][7]);
+  long softirq = stol(filecontent[0][8]);
+  long steal = stol(filecontent[0][9]);
+  cpustats["Idle"] = idle + iowait;
+  cpustats["NonIdle"] = user + nice + system + irq + softirq + steal;
+  cpustats["Total"] = cpustats["Idle"] + cpustats["NonIdle"];
+  return cpustats;
+}
 
 // TODO: Read and return the total number of processes
 int LinuxParser::TotalProcesses() {
