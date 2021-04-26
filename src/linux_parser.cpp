@@ -52,7 +52,7 @@ vector<vector<string>> LinuxParser::GetSpacedContent(string const filepath,
   return contentvec;
 }
 
-// This Helper function reads files line by line and extracts Key/Values 
+// This Helper function reads files line by line and extracts Key/Values
 // from the lines it can also remove unwanted characters from the line
 map<string, string> LinuxParser::GetKVContent(string const filepath,
                                               char const separator,
@@ -190,7 +190,17 @@ string LinuxParser::Command(int pid) {
 }
 
 // DONE: Read and return the memory used by a process
-string LinuxParser::Ram(int pid) { return string(); }
+string LinuxParser::Ram(int pid) {
+  vector<char> removechars{' ', 'k', 'B', '\t'};
+  string filepath = kProcDirectory + to_string(pid) + kStatusFilename;
+  map<string, string> procstatus = GetKVContent(filepath, ':', removechars);
+  float mem_mb{0.0};
+  if (procstatus.count("VmSize")) {
+    mem_mb = stof(procstatus["VmSize"]) / 1000;
+  }
+  string mem_string = to_string(mem_mb);
+  return mem_string.substr(0, mem_string.find(".") + 3);
+}
 
 // DONE: Read and return the user ID associated with a process
 string LinuxParser::Uid(int pid) {
@@ -218,6 +228,13 @@ string LinuxParser::User(int pid) {
   return string();
 }
 
-// TODO: Read and return the uptime of a process
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::UpTime(int pid [[maybe_unused]]) { return 0; }
+// DONE: Read and return the uptime of a process
+long LinuxParser::UpTime(int pid) {
+  string filepath = kProcDirectory + to_string(pid) + kStatFilename;
+  vector<vector<string>> filecontent = GetSpacedContent(filepath, ' ');
+  // in the proc/<pid>/stat file the uptime since boot in seconds
+  // is in the first line and 22nd position [0][21]
+  long uptime_ticks = stol(filecontent[0][21]);
+  long uptime_seconds = uptime_ticks / sysconf(_SC_CLK_TCK);
+  return uptime_seconds;
+}
