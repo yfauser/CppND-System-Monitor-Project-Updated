@@ -23,6 +23,7 @@ class Process {
   std::string command_;
   std::string user_;
   std::string uid_;
+  long upsinceboot_;
 };
 
 #endif
