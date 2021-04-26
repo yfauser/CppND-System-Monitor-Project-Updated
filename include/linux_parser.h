@@ -20,6 +20,9 @@ const std::string kOSPath{"/etc/os-release"};
 const std::string kPasswordPath{"/etc/passwd"};
 
 // Helpers
+std::vector<std::string> GetLines(std::string const &filepath);
+std::vector<std::string> GetLineElements(std::string const &line,
+                                         char const separator);
 std::vector<std::vector<std::string>> GetSpacedContent(
     std::string const filepath, char const separator);
 std::map<std::string, std::string> GetKVContent(

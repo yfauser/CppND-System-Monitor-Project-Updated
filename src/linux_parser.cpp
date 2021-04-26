@@ -15,46 +15,60 @@ using std::string;
 using std::to_string;
 using std::vector;
 
-// This function reads files line by line and pushes every item in the line
+// Helper function to read lines from files and put them into a vector
+vector<string> LinuxParser::GetLines(string const &filepath) {
+  string line;
+  vector<string> linevec;
+  std::ifstream filestream(filepath);
+  if (filestream.is_open()) {
+    while (std::getline(filestream, line)) {
+      linevec.push_back(line);
+    }
+  }
+  return linevec;
+}
+
+// Helper function to split line elements into a vector given a separator
+vector<string> LinuxParser::GetLineElements(string const &line,
+                                            char const separator) {
+  string item;
+  vector<string> elements;
+  std::stringstream linestream(line);
+  while (std::getline(linestream, item, separator)) {
+    elements.push_back(item);
+  }
+  return elements;
+}
+
+// Helper function to read files line by line and to push every item in the line
 // to a vector. This vector is then pushed onto another vector.
 vector<vector<string>> LinuxParser::GetSpacedContent(string const filepath,
                                                      char const separator) {
-  string line, item;
-  vector<string> innervec;
-  vector<vector<string>> externalvec;
-  std::ifstream filestream(filepath);
-  if (filestream.is_open()) {
-    while (std::getline(filestream, line)) {
-      std::stringstream linestream(line);
-      while (std::getline(linestream, item, separator)) {
-        innervec.push_back(item);
-      }
-      externalvec.push_back(innervec);
-      innervec = {};
-    }
+  vector<vector<string>> contentvec;
+  vector<string> linevector = GetLines(filepath);
+  for (string &line : linevector) {
+    contentvec.push_back(GetLineElements(line, separator));
   }
-  return externalvec;
+  return contentvec;
 }
 
-// This function reads files line by line and extracts Key/Values from the lines
-// it can also remove unwanted characters from the line
+// This Helper function reads files line by line and extracts Key/Values 
+// from the lines it can also remove unwanted characters from the line
 map<string, string> LinuxParser::GetKVContent(string const filepath,
                                               char const separator,
                                               vector<char> const removechars) {
-  string line, key, value;
+  string key, value;
   map<string, string> dict;
-  std::ifstream filestream(filepath);
-  if (filestream.is_open()) {
-    while (std::getline(filestream, line)) {
-      std::stringstream linestream(line);
-      std::getline(linestream, key, separator);
-      std::getline(linestream, value, separator);
-      for (char toremove : removechars) {
-        key.erase(remove(key.begin(), key.end(), toremove), key.end());
-        value.erase(remove(value.begin(), value.end(), toremove), value.end());
-      }
-      dict.insert({key, value});
+  vector<string> linevector = GetLines(filepath);
+  for (string &line : linevector) {
+    std::stringstream linestream(line);
+    std::getline(linestream, key, separator);
+    std::getline(linestream, value, separator);
+    for (char toremove : removechars) {
+      key.erase(remove(key.begin(), key.end(), toremove), key.end());
+      value.erase(remove(value.begin(), value.end(), toremove), value.end());
     }
+    dict.insert({key, value});
   }
   return dict;
 }
@@ -80,8 +94,8 @@ string LinuxParser::Kernel() {
 // BONUS: Update this to use std::filesystem
 vector<int> LinuxParser::Pids() {
   vector<int> pids;
-  DIR* directory = opendir(kProcDirectory.c_str());
-  struct dirent* file;
+  DIR *directory = opendir(kProcDirectory.c_str());
+  struct dirent *file;
   while ((file = readdir(directory)) != nullptr) {
     // Is this a directory?
     if (file->d_type == DT_DIR) {
@@ -168,31 +182,23 @@ int LinuxParser::RunningProcesses() {
 // DONE: Read and return the command associated with a process
 string LinuxParser::Command(int pid) {
   string filepath = kProcDirectory + to_string(pid) + kCmdlineFilename;
-  // To get the full line with the function, I'm using an unused DC1
-  // Char as the separator, therefore the full line will be in [0][0]
-  vector<vector<string>> filecontent = GetSpacedContent(filepath, '\11');
-  if (filecontent.size() == 0)
+  vector<string> linevect = GetLines(filepath);
+  if (linevect.size() == 0)
     return string();
   else
-    return filecontent[0][0];
+    return linevect[0];
 }
 
-// TODO: Read and return the memory used by a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Ram(int pid [[maybe_unused]]) { return string(); }
+// DONE: Read and return the memory used by a process
+string LinuxParser::Ram(int pid) { return string(); }
 
 // DONE: Read and return the user ID associated with a process
 string LinuxParser::Uid(int pid) {
-  vector<string> linevect;
   vector<char> removechars{' '};
   string filepath = kProcDirectory + to_string(pid) + kStatusFilename;
   map<string, string> procstatus = GetKVContent(filepath, ':', removechars);
-  // Getting the Uid line as stringstream
-  std::stringstream uidstream(procstatus["Uid"]);
-  string item;
-  while (std::getline(uidstream, item, '\t')) {
-    linevect.push_back(item);
-  }
+  // The Line in which the Uid is found has tab separated content
+  vector<string> linevect = GetLineElements(procstatus["Uid"], '\t');
   // The Uid is the second element of the created vector
   return linevect[1];
 }
@@ -204,7 +210,7 @@ string LinuxParser::User(int pid) {
   vector<vector<string>> filecontent = GetSpacedContent(kPasswordPath, ':');
   // iterating through the lines in the file to find the userid (3rd pos)
   // and returning the username (1st pos)
-  for (vector<string> line : filecontent) {
+  for (vector<string> &line : filecontent) {
     if (line[2] == uid_str) {
       return line[0];
     }
