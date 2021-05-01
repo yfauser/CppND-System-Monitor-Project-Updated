@@ -142,7 +142,7 @@ long LinuxParser::ActiveJiffies() { return 0; }
 // TODO: Read and return the number of idle jiffies for the system
 long LinuxParser::IdleJiffies() { return 0; }
 
-// TODO: Read and return CPU utilization
+// DONE: Read and return CPU utilization
 map<string, long> LinuxParser::CpuUtilization() {
   map<string, long> cpustats;
   string filepath = kProcDirectory + kStatFilename;
@@ -161,7 +161,7 @@ map<string, long> LinuxParser::CpuUtilization() {
   return cpustats;
 }
 
-// TODO: Read and return the total number of processes
+// DONE: Read and return the total number of processes
 int LinuxParser::TotalProcesses() {
   string filepath = kProcDirectory + kStatFilename;
   vector<vector<string>> filecontent = GetSpacedContent(filepath, ' ');
@@ -170,7 +170,7 @@ int LinuxParser::TotalProcesses() {
   return stoi(filecontent[6][1]);
 }
 
-// TODO: Read and return the number of running processes
+// DONE: Read and return the number of running processes
 int LinuxParser::RunningProcesses() {
   string filepath = kProcDirectory + kStatFilename;
   vector<vector<string>> filecontent = GetSpacedContent(filepath, ' ');
@@ -237,4 +237,27 @@ long LinuxParser::UpTime(int pid) {
   long uptime_ticks = stol(filecontent[0][21]);
   long uptime_seconds = uptime_ticks / sysconf(_SC_CLK_TCK);
   return uptime_seconds;
+}
+
+// DONE: Read and return per process CPU utilization
+map<string, float> LinuxParser::CpuUtilization(int pid) {
+  string filepath = kProcDirectory + to_string(pid) + kStatFilename;
+  vector<vector<string>> filecontent = GetSpacedContent(filepath, ' ');
+  map<string, float> procstats;
+  float utime = stof(filecontent[0][13]);
+  float stime = stof(filecontent[0][14]);
+  float cutime = stof(filecontent[0][15]);
+  float cstime = stof(filecontent[0][16]);
+  float starttime = stof(filecontent[0][21]);
+  // Calculation taken from
+  // https://stackoverflow.com/questions/16726779/how-do-i-get-the-total-cpu-usage-of-an-application-from-proc-pid-stat/16736599#16736599
+  procstats["total_time"] = utime + stime + cutime + cstime;
+  procstats["proc_time"] = UpTime() - (starttime / (float)sysconf(_SC_CLK_TCK));
+  procstats["cpu_usage"] =
+      ((procstats["total_time"] / (float)sysconf(_SC_CLK_TCK)) /
+       procstats["proc_time"]);
+  if (procstats["cpu_usage"] < 0.0) {
+    ;
+  }
+  return procstats;
 }
