@@ -185,8 +185,9 @@ string LinuxParser::Command(int pid) {
   vector<string> linevect = GetLines(filepath);
   if (linevect.size() == 0)
     return string();
-  else
+  else {
     return linevect[0];
+  }
 }
 
 // DONE: Read and return the memory used by a process
@@ -199,7 +200,7 @@ string LinuxParser::Ram(int pid) {
     mem_mb = stof(procstatus["VmSize"]) / 1000;
   }
   string mem_string = to_string(mem_mb);
-  return mem_string.substr(0, mem_string.find(".") + 3);
+  return mem_string.substr(0, mem_string.find(".") + 2);
 }
 
 // DONE: Read and return the user ID associated with a process
@@ -257,13 +258,10 @@ map<string, float> LinuxParser::CpuUtilization(int pid) {
   float starttime = stof(filecontent[0][21]);
   // Calculation taken from
   // https://stackoverflow.com/questions/16726779/how-do-i-get-the-total-cpu-usage-of-an-application-from-proc-pid-stat/16736599#16736599
+  procstats["mhz"] = (float)sysconf(_SC_CLK_TCK);
   procstats["total_time"] = utime + stime + cutime + cstime;
-  procstats["proc_time"] = UpTime() - (starttime / (float)sysconf(_SC_CLK_TCK));
+  procstats["proc_time"] = UpTime() - (starttime / procstats["mhz"]);
   procstats["cpu_usage"] =
-      ((procstats["total_time"] / (float)sysconf(_SC_CLK_TCK)) /
-       procstats["proc_time"]);
-  if (procstats["cpu_usage"] < 0.0) {
-    ;
-  }
+      ((procstats["total_time"] / procstats["mhz"]) / procstats["proc_time"]);
   return procstats;
 }

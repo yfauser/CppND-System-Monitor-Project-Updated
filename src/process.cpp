@@ -3,12 +3,14 @@
 #include <unistd.h>
 
 #include <cctype>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "linux_parser.h"
 
+using std::map;
 using std::string;
 using std::to_string;
 using std::vector;
@@ -18,15 +20,43 @@ Process::Process(int pid)
       command_(LinuxParser::Command(pid)),
       user_(LinuxParser::User(pid)),
       uid_(LinuxParser::Uid(pid)),
-      upsinceboot_(LinuxParser::UpTime(pid)) {}
+      upsinceboot_(LinuxParser::UpTime(pid)),
+      procqueuedepth_(3) {}
 
 // DONE: Return this process's ID
 int Process::Pid() { return pid_; }
 
-// TODO: Return this process's CPU utilization
-float Process::CpuUtilization() {
-  current_cpu_ = LinuxParser::CpuUtilization(pid_)["cpu_usage"];
-  return current_cpu_;
+// DONE: Return this process's CPU utilization
+float Process::CpuUtilization() { return current_cpu_; }
+
+// Update the Process CPU utilization
+void Process::UpdateCpuUtilization() {
+  // Get the current stats from stats file
+  map<string, float> procstats = LinuxParser::CpuUtilization(pid_);
+  // Put the current stats to the back of the queue
+  this->prev_stats_.emplace(procstats);
+  // Get the oldest stats from the front of the queue
+  map<string, float> prevprocstats = this->prev_stats_.front();
+
+  float prevtotal{0.0};
+  float prevproctime{0.0};
+  // Only use prevtotal if queue is longer than 1,
+  // Else we run into devision by 0 in return statement
+  if (prev_stats_.size() > 1) {
+    prevtotal = prevprocstats["total_time"];
+    prevproctime = prevprocstats["proc_time"];
+  }
+
+  // Calculate difference between current and oldest total and idle
+  float totald = procstats["total_time"] - prevtotal;
+  float proctimed = procstats["proc_time"] - prevproctime;
+
+  // Pop front element from the queue if its longer than the max time
+  if (prev_stats_.size() > this->procqueuedepth_) {
+    prev_stats_.pop();
+  }
+  // Return the CPU usage using difference between current and oldest
+  this->current_cpu_ = (totald / procstats["mhz"]) / proctimed;
 }
 
 // TODO: Return the command that generated this process
