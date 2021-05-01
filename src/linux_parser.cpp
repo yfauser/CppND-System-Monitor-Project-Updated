@@ -147,17 +147,24 @@ map<string, long> LinuxParser::CpuUtilization() {
   map<string, long> cpustats;
   string filepath = kProcDirectory + kStatFilename;
   vector<vector<string>> filecontent = GetSpacedContent(filepath, ' ');
-  long user = stol(filecontent[0][2]);
-  long nice = stol(filecontent[0][3]);
-  long system = stol(filecontent[0][4]);
-  long idle = stol(filecontent[0][5]);
-  long iowait = stol(filecontent[0][6]);
-  long irq = stol(filecontent[0][7]);
-  long softirq = stol(filecontent[0][8]);
-  long steal = stol(filecontent[0][9]);
-  cpustats["Idle"] = idle + iowait;
-  cpustats["NonIdle"] = user + nice + system + irq + softirq + steal;
-  cpustats["Total"] = cpustats["Idle"] + cpustats["NonIdle"];
+  try {
+    vector<string> cpuline = filecontent.at(0);
+    long user = stol(cpuline.at(2));
+    long nice = stol(cpuline.at(3));
+    long system = stol(cpuline.at(4));
+    long idle = stol(cpuline.at(5));
+    long iowait = stol(cpuline.at(6));
+    long irq = stol(cpuline.at(7));
+    long softirq = stol(cpuline.at(8));
+    long steal = stol(cpuline.at(9));
+    cpustats["Idle"] = idle + iowait;
+    cpustats["NonIdle"] = user + nice + system + irq + softirq + steal;
+    cpustats["Total"] = cpustats["Idle"] + cpustats["NonIdle"];
+  } catch (const std::out_of_range &oor) {
+    cpustats["Idle"] = 0;
+    cpustats["NonIdle"] = 0;
+    cpustats["Total"] = 0;
+  }
   return cpustats;
 }
 
@@ -183,10 +190,10 @@ int LinuxParser::RunningProcesses() {
 string LinuxParser::Command(int pid) {
   string filepath = kProcDirectory + to_string(pid) + kCmdlineFilename;
   vector<string> linevect = GetLines(filepath);
-  if (linevect.size() == 0)
+  try {
+    return linevect.at(0);
+  } catch (const std::out_of_range &oor) {
     return string();
-  else {
-    return linevect[0];
   }
 }
 
@@ -211,7 +218,13 @@ string LinuxParser::Uid(int pid) {
   // The Line in which the Uid is found has tab separated content
   vector<string> linevect = GetLineElements(procstatus["Uid"], '\t');
   // The Uid is the second element of the created vector
-  return linevect[1];
+  string uid;
+  try {
+    uid = linevect.at(1);
+  } catch (const std::out_of_range &oor) {
+    uid = "";
+  }
+  return uid;
 }
 
 // DONE: Read and return the user associated with a process
@@ -223,13 +236,7 @@ string LinuxParser::User(int pid) {
   // and returning the username (1st pos)
   for (vector<string> &line : filecontent) {
     if (line[2] == uid_str) {
-      // Truncating the string for better display
-      int strsize = line[0].size();
-      if (strsize >= 14) {
-        return line[0].substr(0, 11) + "..";
-      } else {
-        return line[0].append(14 - strsize, ' ');
-      }
+      return line[0];
     }
   }
   return string();
@@ -241,7 +248,15 @@ long LinuxParser::UpTime(int pid) {
   vector<vector<string>> filecontent = GetSpacedContent(filepath, ' ');
   // in the proc/<pid>/stat file the uptime since boot in seconds
   // is in the first line and 22nd position [0][21]
-  long uptime_ticks = stol(filecontent[0][21]);
+  vector<string> uptime_line;
+  string uptime_str;
+  try {
+    uptime_line = filecontent.at(0);
+    uptime_str = uptime_line.at(21);
+  } catch (const std::out_of_range &oor) {
+    return 0;
+  }
+  long uptime_ticks = stol(uptime_str);
   long uptime_seconds = uptime_ticks / sysconf(_SC_CLK_TCK);
   return uptime_seconds;
 }
@@ -251,17 +266,25 @@ map<string, float> LinuxParser::CpuUtilization(int pid) {
   string filepath = kProcDirectory + to_string(pid) + kStatFilename;
   vector<vector<string>> filecontent = GetSpacedContent(filepath, ' ');
   map<string, float> procstats;
-  float utime = stof(filecontent[0][13]);
-  float stime = stof(filecontent[0][14]);
-  float cutime = stof(filecontent[0][15]);
-  float cstime = stof(filecontent[0][16]);
-  float starttime = stof(filecontent[0][21]);
-  // Calculation taken from
-  // https://stackoverflow.com/questions/16726779/how-do-i-get-the-total-cpu-usage-of-an-application-from-proc-pid-stat/16736599#16736599
-  procstats["mhz"] = (float)sysconf(_SC_CLK_TCK);
-  procstats["total_time"] = utime + stime + cutime + cstime;
-  procstats["proc_time"] = UpTime() - (starttime / procstats["mhz"]);
-  procstats["cpu_usage"] =
-      ((procstats["total_time"] / procstats["mhz"]) / procstats["proc_time"]);
+  try {
+    vector<string> procstline = filecontent.at(0);
+    float utime = stof(procstline.at(13));
+    float stime = stof(procstline.at(14));
+    float cutime = stof(procstline.at(15));
+    float cstime = stof(procstline.at(16));
+    float starttime = stof(procstline.at(21));
+    // Calculation taken from
+    // https://stackoverflow.com/questions/16726779/how-do-i-get-the-total-cpu-usage-of-an-application-from-proc-pid-stat/16736599#16736599
+    procstats["mhz"] = (float)sysconf(_SC_CLK_TCK);
+    procstats["total_time"] = utime + stime + cutime + cstime;
+    procstats["proc_time"] = UpTime() - (starttime / procstats["mhz"]);
+    procstats["cpu_usage"] =
+        ((procstats["total_time"] / procstats["mhz"]) / procstats["proc_time"]);
+  } catch (const std::out_of_range &oor) {
+    procstats["mhz"] = 0;
+    procstats["total_time"] = 0;
+    procstats["proc_time"] = 0;
+    procstats["cpu_usage"] = 0;
+  }
   return procstats;
 }
