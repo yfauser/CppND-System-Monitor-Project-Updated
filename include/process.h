@@ -24,6 +24,7 @@ class Process {
   std::string user_;
   std::string uid_;
   long upsinceboot_;
+  float current_cpu_;
 };
 
 #endif

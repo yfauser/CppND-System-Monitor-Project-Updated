@@ -25,7 +25,8 @@ int Process::Pid() { return pid_; }
 
 // TODO: Return this process's CPU utilization
 float Process::CpuUtilization() {
-  return LinuxParser::CpuUtilization(pid_)["cpu_usage"];
+  current_cpu_ = LinuxParser::CpuUtilization(pid_)["cpu_usage"];
+  return current_cpu_;
 }
 
 // TODO: Return the command that generated this process
@@ -40,8 +41,7 @@ string Process::User() { return user_; }
 // TODO: Return the age of this process (in seconds)
 long int Process::UpTime() { return LinuxParser::UpTime() - upsinceboot_; }
 
-// TODO: Overload the "less than" comparison operator for Process objects
-// REMOVE: [[maybe_unused]] once you define the function
-bool Process::operator<(Process const& a [[maybe_unused]]) const {
-  return true;
+// DONE: Overload the "less than" comparison operator for Process objects
+bool Process::operator<(Process const& a) const {
+  return current_cpu_ > a.current_cpu_;
 }
