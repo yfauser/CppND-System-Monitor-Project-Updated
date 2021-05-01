@@ -222,7 +222,13 @@ string LinuxParser::User(int pid) {
   // and returning the username (1st pos)
   for (vector<string> &line : filecontent) {
     if (line[2] == uid_str) {
-      return line[0];
+      // Truncating the string for better display
+      int strsize = line[0].size();
+      if (strsize >= 14) {
+        return line[0].substr(0, 11) + "..";
+      } else {
+        return line[0].append(14 - strsize, ' ');
+      }
     }
   }
   return string();
