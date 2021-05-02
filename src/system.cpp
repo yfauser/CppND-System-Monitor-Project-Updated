@@ -2,8 +2,6 @@
 
 #include <unistd.h>
 
-#include <algorithm>
-#include <cstddef>
 #include <set>
 #include <string>
 #include <vector>
@@ -12,13 +10,10 @@
 #include "process.h"
 #include "processor.h"
 
-using std::distance;
 using std::find;
-using std::find_if;
 using std::inserter;
 using std::set;
 using std::set_difference;
-using std::size_t;
 using std::sort;
 using std::string;
 using std::vector;

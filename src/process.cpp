@@ -2,9 +2,7 @@
 
 #include <unistd.h>
 
-#include <cctype>
 #include <map>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -12,7 +10,6 @@
 
 using std::map;
 using std::string;
-using std::to_string;
 using std::vector;
 
 Process::Process(int pid)
