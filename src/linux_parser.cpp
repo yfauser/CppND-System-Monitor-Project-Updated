@@ -75,8 +75,7 @@ map<string, string> LinuxParser::GetKVContent(string const &filepath,
 }
 
 // DONE: Refactored OperatorSystem function using external function for
-// modularity
-//       Modified from original Udacity example
+// modularity. Modified from original Udacity example
 string LinuxParser::OperatingSystem() {
   vector<char> removechars{'"'};
   map<string, string> osinfo = GetKVContent(kOSPath, '=', removechars);
@@ -136,7 +135,7 @@ map<string, long> LinuxParser::CpuUtilization() {
   string filepath = kProcDirectory + kStatFilename;
   vector<vector<string>> filecontent = GetSpacedContent(filepath, ' ');
   try {
-    vector<string> cpuline = filecontent.at(0);
+    vector<string> &cpuline = filecontent.at(0);
     long user = stol(cpuline.at(2));
     long nice = stol(cpuline.at(3));
     long system = stol(cpuline.at(4));
