@@ -30,18 +30,16 @@ int Process::Pid() { return pid_; }
 // DONE: Return this process's CPU utilization
 float Process::CpuUtilization() { return current_cpu_; }
 
-
-
-// TODO: Return the command that generated this process
+// DONE: Return the command that generated this process
 string Process::Command() { return command_; }
 
-// TODO: Return this process's memory utilization
+// DONE: Return this process's memory utilization
 string Process::Ram() { return current_ram_; }
 
-// TODO: Return the user (name) that generated this process
+// DONE: Return the user (name) that generated this process
 string Process::User() { return user_; }
 
-// TODO: Return the age of this process (in seconds)
+// DONE: Return the age of this process (in seconds)
 long int Process::UpTime() { return LinuxParser::UpTime() - upsinceboot_; }
 
 // DONE: Overload the "less than" comparison operator for Process objects

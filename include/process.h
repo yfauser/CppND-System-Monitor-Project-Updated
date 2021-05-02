@@ -13,14 +13,14 @@ class Process {
   Process(int pid);
   void MarkStale();
   static bool GetStale(const Process& proc);
-  int Pid();                               // TODO: See src/process.cpp
-  std::string User();                      // TODO: See src/process.cpp
-  std::string Command();                   // TODO: See src/process.cpp
-  float CpuUtilization();                  // TODO: See src/process.cpp
-  void UpdateUtilization();             // TODO: See src/process.cpp
-  std::string Ram();                       // TODO: See src/process.cpp
-  long int UpTime();                       // TODO: See src/process.cpp
-  bool operator<(Process const& a) const;  // TODO: See src/process.cpp
+  int Pid();
+  std::string User();
+  std::string Command();
+  float CpuUtilization();
+  void UpdateUtilization();
+  std::string Ram();
+  long int UpTime();
+  bool operator<(Process const& a) const;
 
   // DONE: Declare any necessary private members
  private:

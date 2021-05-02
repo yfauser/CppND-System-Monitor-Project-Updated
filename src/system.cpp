@@ -62,7 +62,7 @@ vector<Process>& System::Processes() {
   set_difference(currentpids.begin(), currentpids.end(), cachedpids.begin(),
                  cachedpids.end(), inserter(missingpids, missingpids.begin()));
 
-  for (int & missingpid : missingpids) {
+  for (int& missingpid : missingpids) {
     Process new_proc(missingpid);
     new_proc.UpdateUtilization();
     processes_.push_back(new_proc);

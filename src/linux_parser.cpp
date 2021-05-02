@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+using std::getline;
 using std::map;
 using std::stof;
 using std::stoi;
@@ -21,7 +22,7 @@ vector<string> LinuxParser::GetLines(string const &filepath) {
   vector<string> linevec;
   std::ifstream filestream(filepath);
   if (filestream.is_open()) {
-    while (std::getline(filestream, line)) {
+    while (getline(filestream, line)) {
       linevec.push_back(line);
     }
   }
@@ -30,11 +31,11 @@ vector<string> LinuxParser::GetLines(string const &filepath) {
 
 // Helper function to split line elements into a vector given a separator
 vector<string> LinuxParser::GetLineElements(string const &line,
-                                            char const separator) {
+                                            char const &separator) {
   string item;
   vector<string> elements;
   std::stringstream linestream(line);
-  while (std::getline(linestream, item, separator)) {
+  while (getline(linestream, item, separator)) {
     elements.push_back(item);
   }
   return elements;
@@ -42,8 +43,8 @@ vector<string> LinuxParser::GetLineElements(string const &line,
 
 // Helper function to read files line by line and to push every item in the line
 // to a vector. This vector is then pushed onto another vector.
-vector<vector<string>> LinuxParser::GetSpacedContent(string const filepath,
-                                                     char const separator) {
+vector<vector<string>> LinuxParser::GetSpacedContent(string const &filepath,
+                                                     char const &separator) {
   vector<vector<string>> contentvec;
   vector<string> linevector = GetLines(filepath);
   for (string &line : linevector) {
@@ -54,16 +55,16 @@ vector<vector<string>> LinuxParser::GetSpacedContent(string const filepath,
 
 // This Helper function reads files line by line and extracts Key/Values
 // from the lines it can also remove unwanted characters from the line
-map<string, string> LinuxParser::GetKVContent(string const filepath,
-                                              char const separator,
-                                              vector<char> const removechars) {
+map<string, string> LinuxParser::GetKVContent(string const &filepath,
+                                              char const &separator,
+                                              vector<char> const &removechars) {
   string key, value;
   map<string, string> dict;
   vector<string> linevector = GetLines(filepath);
   for (string &line : linevector) {
     std::stringstream linestream(line);
-    std::getline(linestream, key, separator);
-    std::getline(linestream, value, separator);
+    getline(linestream, key, separator);
+    getline(linestream, value, separator);
     for (char toremove : removechars) {
       key.erase(remove(key.begin(), key.end(), toremove), key.end());
       value.erase(remove(value.begin(), value.end(), toremove), value.end());

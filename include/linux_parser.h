@@ -22,12 +22,12 @@ const std::string kPasswordPath{"/etc/passwd"};
 // Helpers
 std::vector<std::string> GetLines(std::string const &filepath);
 std::vector<std::string> GetLineElements(std::string const &line,
-                                         char const separator);
+                                         char const &separator);
 std::vector<std::vector<std::string>> GetSpacedContent(
-    std::string const filepath, char const separator);
+    std::string const &filepath, char const &separator);
 std::map<std::string, std::string> GetKVContent(
-    std::string const filepath, char const separator,
-    std::vector<char> const removechars);
+    std::string const &filepath, char const &separator,
+    std::vector<char> const &removechars);
 
 // System
 float MemoryUtilization();
@@ -52,11 +52,6 @@ enum CPUStates {
   kGuestNice_
 };
 std::map<std::string, long> CpuUtilization();
-
-long Jiffies();
-long ActiveJiffies();
-long ActiveJiffies(int pid);
-long IdleJiffies();
 
 // Processes
 std::string Command(int pid);
