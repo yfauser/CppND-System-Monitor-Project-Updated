@@ -12,7 +12,12 @@
 #include "process.h"
 #include "processor.h"
 
+using std::distance;
+using std::find;
+using std::find_if;
+using std::inserter;
 using std::set;
+using std::set_difference;
 using std::size_t;
 using std::sort;
 using std::string;
@@ -26,13 +31,43 @@ Processor& System::Cpu() { return cpu_; }
 
 // DONE: Return a container composed of the system's processes
 vector<Process>& System::Processes() {
-  processes_.clear();
-  vector<int> pids = LinuxParser::Pids();
-  for (int pid : pids) {
-    Process new_proc(pid);
-    new_proc.UpdateCpuUtilization();
+  vector<int> currentpids = LinuxParser::Pids();
+  vector<int> cachedpids;
+
+  // Loop to check if Pids on system are in the processes_ vector.
+  // If in vector, update stats. If object is stale, mark it as such.
+  for (auto& procobj : processes_) {
+    int currentpid = procobj.Pid();
+    vector<int>::iterator it =
+        find(currentpids.begin(), currentpids.end(), currentpid);
+    if (it != currentpids.end()) {
+      procobj.UpdateUtilization();
+      cachedpids.emplace_back(currentpid);
+    } else {
+      // Mark object as stale in processes_
+      procobj.MarkStale();
+    }
+  }
+
+  // Delete all stale objects
+  processes_.erase(
+      remove_if(processes_.begin(), processes_.end(), Process::GetStale),
+      processes_.end());
+  processes_.shrink_to_fit();
+
+  // create new objects from Pids on system but not in processes_ vector
+  vector<int> missingpids{};
+  sort(currentpids.begin(), currentpids.end());
+  sort(cachedpids.begin(), cachedpids.end());
+  set_difference(currentpids.begin(), currentpids.end(), cachedpids.begin(),
+                 cachedpids.end(), inserter(missingpids, missingpids.begin()));
+
+  for (int & missingpid : missingpids) {
+    Process new_proc(missingpid);
+    new_proc.UpdateUtilization();
     processes_.push_back(new_proc);
   }
+  // Sort the process_ vector before output
   sort(processes_.begin(), processes_.end());
   return processes_;
 }

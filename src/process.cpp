@@ -21,7 +21,8 @@ Process::Process(int pid)
       user_(LinuxParser::User(pid)),
       uid_(LinuxParser::Uid(pid)),
       upsinceboot_(LinuxParser::UpTime(pid)),
-      procqueuedepth_(3) {}
+      procqueuedepth_(10),
+      stale_(false) {}
 
 // DONE: Return this process's ID
 int Process::Pid() { return pid_; }
@@ -29,8 +30,27 @@ int Process::Pid() { return pid_; }
 // DONE: Return this process's CPU utilization
 float Process::CpuUtilization() { return current_cpu_; }
 
-// Update the Process CPU utilization
-void Process::UpdateCpuUtilization() {
+
+
+// TODO: Return the command that generated this process
+string Process::Command() { return command_; }
+
+// TODO: Return this process's memory utilization
+string Process::Ram() { return current_ram_; }
+
+// TODO: Return the user (name) that generated this process
+string Process::User() { return user_; }
+
+// TODO: Return the age of this process (in seconds)
+long int Process::UpTime() { return LinuxParser::UpTime() - upsinceboot_; }
+
+// DONE: Overload the "less than" comparison operator for Process objects
+bool Process::operator<(Process const& a) const {
+  return current_cpu_ > a.current_cpu_;
+}
+
+// Update the Process CPU and RAM utilization
+void Process::UpdateUtilization() {
   // Get the current stats from stats file
   map<string, float> procstats = LinuxParser::CpuUtilization(pid_);
   // Put the current stats to the back of the queue
@@ -55,23 +75,13 @@ void Process::UpdateCpuUtilization() {
   if (prev_stats_.size() > this->procqueuedepth_) {
     prev_stats_.pop();
   }
-  // Return the CPU usage using difference between current and oldest
+  // Store the CPU usage using difference between current and oldest
   this->current_cpu_ = (totald / procstats["mhz"]) / proctimed;
+
+  // Store the RAM usage of current process
+  this->current_ram_ = LinuxParser::Ram(pid_);
 }
 
-// TODO: Return the command that generated this process
-string Process::Command() { return command_; }
+void Process::MarkStale() { stale_ = true; }
 
-// TODO: Return this process's memory utilization
-string Process::Ram() { return LinuxParser::Ram(pid_); }
-
-// TODO: Return the user (name) that generated this process
-string Process::User() { return user_; }
-
-// TODO: Return the age of this process (in seconds)
-long int Process::UpTime() { return LinuxParser::UpTime() - upsinceboot_; }
-
-// DONE: Overload the "less than" comparison operator for Process objects
-bool Process::operator<(Process const& a) const {
-  return current_cpu_ > a.current_cpu_;
-}
+bool Process::GetStale(const Process& proc_) { return proc_.stale_; }
